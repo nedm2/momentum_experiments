@@ -18,28 +18,65 @@ def toint(i): return int(round(i))
 
 ########### Simulation ##############
 
-class Vector():
-  def __init__(self, x=0.0, y=0.0):
-    self.x = x
-    self.y = y
+class Vector:
+  def __init__(self, x=0, y=0):
+    self.x = float(x)
+    self.y = float(y)
 
-  def getTuple(self):
-    return self.x, self.y
+  def __add__(self, other):
+    return Vector(self.x + other.x, self.y + other.y)
 
-  def distanceTo(self, v):
-    return sqrt((self.x - v.x)**2 + (self.y - v.y)**2)
+  def __sub__(self, other):
+    return Vector(self.x - other.x, self.y - other.y)
+
+  def __mul__(self, scale):
+    return Vector(scale*self.x, scale*self.y)
+
+  def __rmul__(self, scale):
+    return self*scale
+
+  def int_x(self):
+    return toint(self.x)
+
+  def int_y(self):
+    return toint(self.y)
+
+  def get_x(self):
+    return self.x
+
+  def get_y(self):
+    return self.y
 
   def magnitude(self):
-    return sqrt(self.x**2 + self.y**2)
+    return math.sqrt(self.x**2 + self.y**2)
 
-  def getNormal(self):
-    return Vector(self.x/self.magnitude(), self.y/self.magnitude())
+  def unit_vector(self):
+    if abs(self.x) < tinyFloat and abs(self.y) < tinyFloat:
+      return Vector(0,0)
+    else:
+      return Vector(self.x/self.magnitude(), self.y/self.magnitude())
 
-  def __add__(self, addend):
-    return Vector(self.x + addend.x, self.y + addend.y)
+  def angle_rad(self):
+    return math.atan2(self.y, self.x)
+
+  def getComponent(self, theta):
+    alpha = self.angle_rad() - theta
+    magnitude = math.cos(alpha)*self.magnitude()
+    return Vector(math.cos(theta)*magnitude, math.sin(theta)*magnitude)
+
+  def getNormalComponent(self, theta):
+    alpha = self.angle_rad() - theta
+    magnitude = math.sin(alpha)*self.magnitude()
+    return Vector(math.cos(theta + (math.pi/2))*magnitude, math.sin(theta + (math.pi/2))*magnitude)
 
   def __str__(self):
-    return "x: " + str(self.x) + ", y: " + str(self.y)
+    return "Vector (%.3f, %.3f)" % (self.x, self.y)
+
+  def distance(self, v):
+    return math.sqrt((self.x - v.x)**2 + (self.y - v.y)**2)
+    
+  def __repr__(self):
+    return self.__str__()
 
 class Ball():
   def __init__(self, position=Vector(900.0,450.0), velocity=Vector(-0.97,-0.5)):
