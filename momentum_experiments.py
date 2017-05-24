@@ -1,6 +1,6 @@
 import pygame, sys, os
 from pygame.locals import *
-from math import sqrt, pi, sin, cos
+import math
 from random import random
 
 #params
@@ -81,6 +81,8 @@ class Vector:
 class Ball():
   def __init__(self, position=Vector(900.0,450.0), velocity=Vector(-0.97,-0.5)):
     self.diameter = 51.0
+    self.radius = self.diameter/2
+    self.radius = 35.0
     self.position = position
     self.velocity = velocity
     self.color = (150, 0,0) 
@@ -89,17 +91,21 @@ class Ball():
     self.position += self.velocity
 
   def draw(self, screen):
-    pygame.draw.circle(screen, self.color, (int(self.position.x), int(self.position.y)), int(self.diameter))
+    pygame.draw.circle(screen, self.color, (int(self.position.x), int(self.position.y)), int(self.radius))
 
 class Simulation():
     def __init__(self):
-        self.b1 = Ball(Vector(50.0, 250.0), Vector(5.0, 0.0))
-        self.b2 = Ball(Vector(950.0, 250.0), Vector(-5.0, 0.0))
+        self.b1 = Ball(Vector(50.0, 250.0), Vector(1.0, 0.0))
+        self.b2 = Ball(Vector(950.0, 250.0), Vector(-1.0, 0.0))
         self.cushions = 0
 
     def update(self):
         self.b1.update()
         self.b2.update()
+        if self.b1.position.distance(self.b2.position) < (self.b1.radius + self.b2.radius):
+            self.b1.velocity = Vector(0,0)
+            self.b2.velocity = Vector(0,0)
+
 
     def draw(self, screen):
         self.b1.draw(screen)
@@ -129,4 +135,4 @@ while True:
   simulation.draw(screen)
   pygame.display.flip()
   input(pygame.event.get())
-  clock.tick(60)
+  clock.tick(300)
