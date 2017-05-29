@@ -48,10 +48,10 @@ class Simulation():
         self.b1 = Ball(b1, b1v, b1m)
         self.b2 = Ball(b2, b2v, b2m)
         self.cushions = 0
+        self.colliding = False
 
     def momentum(self):
         #Calculate the vector of force from b2 to b1
-        print(self.b1.position, self.b2.position)
         impVelComp1 = self.b1.velocity.component(self.b2.position - self.b1.position)
         impVelComp2 = self.b2.velocity.component(self.b1.position - self.b2.position)
         velInit1 = impVelComp1.magnitude()
@@ -62,16 +62,18 @@ class Simulation():
             velInit2 *= -1
             impVelComp2 *= -1
 
+        # Calculate final velocities along the line of impulse using 1D formulas
         velFin1 = velInit1*((self.b1.mass - self.b2.mass) / (self.b1.mass + self.b2.mass)) + velInit2*((2*self.b2.mass)/(self.b1.mass+self.b2.mass))
         velFin2 = velInit2*((self.b2.mass - self.b1.mass) / (self.b2.mass + self.b1.mass)) + velInit1*((2*self.b1.mass)/(self.b2.mass+self.b1.mass))
 
-        print(velFin2)
-
+        # Special case when initial velocity along line of impulse is very small 
         if abs(velInit1) < 0.01:
             impVelComp1 = impVelComp2
         if abs(velInit2) < 0.01:
             impVelComp2 = impVelComp1
 
+        # Combine the component normal to the line of impulse (which should not change) with the newly
+        # calculated component along the line of impulse. 
         self.b1.velocity = self.b1.velocity.component(impVelComp1.rotated(math.pi/2)) + velFin1*((impVelComp1).unit_vector())
         self.b2.velocity = self.b2.velocity.component(impVelComp2.rotated(math.pi/2)) + velFin2*((impVelComp2).unit_vector())
 
@@ -79,8 +81,11 @@ class Simulation():
     def update(self):
         self.b1.update()
         self.b2.update()
-        if self.b1.position.distance(self.b2.position) < (self.b1.radius + self.b2.radius):
+        if (not self.colliding) and self.b1.position.distance(self.b2.position) < (self.b1.radius + self.b2.radius):
             self.momentum()
+            self.colliding = True
+        else:
+            self.colliding = False
 
 
     def draw(self, screen):
