@@ -21,24 +21,32 @@ def toint(i): return int(round(i))
 
 
 class Ball():
-  def __init__(self, position=Vector(900.0,450.0), velocity=Vector(-0.97,-0.5)):
-    self.diameter = 51.0
-    self.radius = self.diameter/2
-    self.radius = 35.0
-    self.position = position
-    self.velocity = velocity
-    self.color = (150, 0,0) 
+    def __init__(self, position=Vector(900.0,450.0), velocity=Vector(-0.97,-0.5), m=100):
+      self.diameter = 51.0
+      self.radius = self.diameter/2
+      self.radius = 35.0
+      self.position = position
+      self.velocity = velocity
+      self.color = (150, 0,0) 
+      self.mass = m
 
-  def update(self):
-    self.position += self.velocity
+    def update(self):
+      self.position += self.velocity
 
-  def draw(self, screen):
-    pygame.draw.circle(screen, self.color, (int(self.position.x), int(self.position.y)), int(self.radius))
+    def draw(self, screen):
+      pygame.draw.circle(screen, self.color, (int(self.position.x), int(self.position.y)), int(self.radius))
+
+    def inViewAndMoving(self):
+        return self.position.x >= 0 \
+           and self.position.x <= win_width \
+           and self.position.y >= 0 \
+           and self.position.y <= win_height \
+           and self.velocity.magnitude() > 0.3
 
 class Simulation():
-    def __init__(self):
-        self.b1 = Ball(Vector(50.0, 250.0), Vector(1.0, 0.0))
-        self.b2 = Ball(Vector(500.0, 250.0), Vector(0.0, 0.0))
+    def __init__(self, b1=Vector(50.0, 250.0), b1v=Vector(1.0, 0.0), b2=Vector(500.0, 250.0), b2v=Vector(0.0, 0.0), b1m=1, b2m=1):
+        self.b1 = Ball(b1, b1v, b1m)
+        self.b2 = Ball(b2, b2v, b2m)
         self.cushions = 0
 
     def momentum(self):
@@ -54,8 +62,10 @@ class Simulation():
             velInit2 *= -1
             impVelComp2 *= -1
 
-        velFin1 = velInit1*((1 - 1) / (1 + 1)) + velInit2*((2*1)/(1+1))
-        velFin2 = velInit2*((1 - 1) / (1 + 1)) + velInit1*((2*1)/(1+1))
+        velFin1 = velInit1*((self.b1.mass - self.b2.mass) / (self.b1.mass + self.b2.mass)) + velInit2*((2*self.b2.mass)/(self.b1.mass+self.b2.mass))
+        velFin2 = velInit2*((self.b2.mass - self.b1.mass) / (self.b2.mass + self.b1.mass)) + velInit1*((2*self.b1.mass)/(self.b2.mass+self.b1.mass))
+
+        print(velFin2)
 
         if abs(velInit1) < 0.01:
             impVelComp1 = impVelComp2
@@ -77,6 +87,9 @@ class Simulation():
         self.b1.draw(screen)
         self.b2.draw(screen)
 
+    def objectsInViewAndMoving(self):
+        return self.b1.inViewAndMoving() or self.b2.inViewAndMoving()
+
 def events(events): 
   for event in events: 
       if event.type == QUIT: 
@@ -92,12 +105,14 @@ screen = pygame.display.get_surface()
 font = pygame.font.Font(None, 36)
 clock = pygame.time.Clock()
 
-simulation = Simulation()
+for i in range(20):
 
-while True: 
-  screen.fill((0,0,0))
-  simulation.update()
-  simulation.draw(screen)
-  pygame.display.flip()
-  events(pygame.event.get())
-  clock.tick(300)
+    simulation = Simulation(b2=Vector(950.0, 200 + i*5), b2v=Vector(-1.0, 0), b1v=Vector(0,0), b1=Vector(500, 250), b2m=2.0)
+
+    while simulation.objectsInViewAndMoving(): 
+      screen.fill((0,0,0))
+      simulation.update()
+      simulation.draw(screen)
+      pygame.display.flip()
+      events(pygame.event.get())
+      clock.tick(300)
