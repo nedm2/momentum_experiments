@@ -2,6 +2,7 @@ import pygame, sys, os
 from pygame.locals import *
 import math
 from random import random
+from Vector import Vector
 
 #params
 win_width = 1000.0
@@ -18,65 +19,6 @@ def toint(i): return int(round(i))
 
 ########### Simulation ##############
 
-class Vector:
-  def __init__(self, x=0, y=0):
-    self.x = float(x)
-    self.y = float(y)
-
-  def __add__(self, other):
-    return Vector(self.x + other.x, self.y + other.y)
-
-  def __sub__(self, other):
-    return Vector(self.x - other.x, self.y - other.y)
-
-  def __mul__(self, scale):
-    return Vector(scale*self.x, scale*self.y)
-
-  def __rmul__(self, scale):
-    return self*scale
-
-  def int_x(self):
-    return toint(self.x)
-
-  def int_y(self):
-    return toint(self.y)
-
-  def get_x(self):
-    return self.x
-
-  def get_y(self):
-    return self.y
-
-  def magnitude(self):
-    return math.sqrt(self.x**2 + self.y**2)
-
-  def unit_vector(self):
-    if abs(self.x) < tinyFloat and abs(self.y) < tinyFloat:
-      return Vector(0,0)
-    else:
-      return Vector(self.x/self.magnitude(), self.y/self.magnitude())
-
-  def angle_rad(self):
-    return math.atan2(self.y, self.x)
-
-  def getComponent(self, theta):
-    alpha = self.angle_rad() - theta
-    magnitude = math.cos(alpha)*self.magnitude()
-    return Vector(math.cos(theta)*magnitude, math.sin(theta)*magnitude)
-
-  def getNormalComponent(self, theta):
-    alpha = self.angle_rad() - theta
-    magnitude = math.sin(alpha)*self.magnitude()
-    return Vector(math.cos(theta + (math.pi/2))*magnitude, math.sin(theta + (math.pi/2))*magnitude)
-
-  def __str__(self):
-    return "Vector (%.3f, %.3f)" % (self.x, self.y)
-
-  def distance(self, v):
-    return math.sqrt((self.x - v.x)**2 + (self.y - v.y)**2)
-    
-  def __repr__(self):
-    return self.__str__()
 
 class Ball():
   def __init__(self, position=Vector(900.0,450.0), velocity=Vector(-0.97,-0.5)):
