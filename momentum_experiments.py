@@ -38,22 +38,46 @@ class Ball():
 class Simulation():
     def __init__(self):
         self.b1 = Ball(Vector(50.0, 250.0), Vector(1.0, 0.0))
-        self.b2 = Ball(Vector(950.0, 250.0), Vector(-1.0, 0.0))
+        self.b2 = Ball(Vector(500.0, 250.0), Vector(0.0, 0.0))
         self.cushions = 0
+
+    def momentum(self):
+        #Calculate the vector of force from b2 to b1
+        print(self.b1.position, self.b2.position)
+        impVelComp1 = self.b1.velocity.component(self.b2.position - self.b1.position)
+        impVelComp2 = self.b2.velocity.component(self.b1.position - self.b2.position)
+        velInit1 = impVelComp1.magnitude()
+        velInit2 = impVelComp2.magnitude()
+
+        # Take b1 direction as positive, must negate magnitudes in opposite direction
+        if self.b1.velocity.alpha(self.b2.velocity) > math.pi/2:
+            velInit2 *= -1
+            impVelComp2 *= -1
+
+        velFin1 = velInit1*((1 - 1) / (1 + 1)) + velInit2*((2*1)/(1+1))
+        velFin2 = velInit2*((1 - 1) / (1 + 1)) + velInit1*((2*1)/(1+1))
+
+        if abs(velInit1) < 0.01:
+            impVelComp1 = impVelComp2
+        if abs(velInit2) < 0.01:
+            impVelComp2 = impVelComp1
+
+        self.b1.velocity = self.b1.velocity.component(impVelComp1.rotated(math.pi/2)) + velFin1*((impVelComp1).unit_vector())
+        self.b2.velocity = self.b2.velocity.component(impVelComp2.rotated(math.pi/2)) + velFin2*((impVelComp2).unit_vector())
+
 
     def update(self):
         self.b1.update()
         self.b2.update()
         if self.b1.position.distance(self.b2.position) < (self.b1.radius + self.b2.radius):
-            self.b1.velocity = Vector(0,0)
-            self.b2.velocity = Vector(0,0)
+            self.momentum()
 
 
     def draw(self, screen):
         self.b1.draw(screen)
         self.b2.draw(screen)
 
-def input(events): 
+def events(events): 
   for event in events: 
       if event.type == QUIT: 
           sys.exit(0) 
@@ -69,12 +93,11 @@ font = pygame.font.Font(None, 36)
 clock = pygame.time.Clock()
 
 simulation = Simulation()
-simulationRunning = True
 
 while True: 
   screen.fill((0,0,0))
   simulation.update()
   simulation.draw(screen)
   pygame.display.flip()
-  input(pygame.event.get())
+  events(pygame.event.get())
   clock.tick(300)
